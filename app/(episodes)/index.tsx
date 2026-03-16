@@ -1,10 +1,11 @@
+import BackButton from "@/components/back-button";
 import EpisodeCard from "@/components/episode-card";
+import Drawer from "@/components/global-drawer";
 import SeasonHeader from "@/components/season-header";
-import { usePagination } from "@/hooks/usePagination";
-import { getEpisodes } from "@/services/episodes";
+import { useEpisodes } from "@/hooks/useEpisodes";
 import { Episode } from "@/types/episodes";
 import { parseEpisodeCode } from "@/utils/parse-episode";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,17 +16,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const EpisodesScreen = () => {
-  const {
-    data: episodes,
-    loading,
-    loadingMore,
-    init,
-    handleLoadMore,
-  } = usePagination<Episode>(getEpisodes);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useEpisodes();
 
-  useEffect(() => {
-    init();
-  }, []);
+  const episodes = data?.pages.flatMap((page) => page.results) ?? [];
+
+  if (isLoading) {
+    return <ActivityIndicator style={{ flex: 1 }} size="large" />;
+  }
 
   const dataWithHeaders = React.useMemo(() => {
     const items: (Episode | { _seasonHeader: number })[] = [];
@@ -44,11 +42,19 @@ const EpisodesScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Épisodes</Text>
-        <Text style={styles.subtitle}>{episodes.length} trouvés</Text>
+        <View>
+          <BackButton />
+
+          <View>
+            <Text style={styles.title}>Épisodes</Text>
+            <Text style={styles.subtitle}>{episodes.length} trouvés</Text>
+          </View>
+        </View>
+
+        <Drawer />
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <ActivityIndicator style={{ flex: 1 }} color="#818cf8" size="large" />
       ) : (
         <FlatList
@@ -67,10 +73,12 @@ const EpisodesScreen = () => {
               <EpisodeCard episode={item as Episode} />
             )
           }
-          onEndReached={handleLoadMore}
+          onEndReached={() => {
+            if (hasNextPage) fetchNextPage();
+          }}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            loadingMore ? (
+            isFetchingNextPage ? (
               <View style={styles.loaderFooter}>
                 <ActivityIndicator color="#818cf8" size="small" />
                 <Text style={styles.loaderText}>Chargement...</Text>

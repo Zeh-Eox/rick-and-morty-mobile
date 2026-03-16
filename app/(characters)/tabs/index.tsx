@@ -1,8 +1,9 @@
+import BackButton from "@/components/back-button";
 import CharacterCard from "@/components/character-card";
-import { usePagination } from "@/hooks/usePagination";
-import { getCharacters } from "@/services/characters";
-import { Character } from "@/types/character";
-import React, { useEffect } from "react";
+import Drawer from "@/components/global-drawer";
+import { useCharacters } from "@/hooks/useCharacters";
+import { useRouter } from "expo-router";
+import React from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -13,20 +14,20 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const HomeScreen = () => {
-  const {
-    data: characters,
-    loading,
-    loadingMore,
-    init,
-    handleLoadMore,
-  } = usePagination<Character>(getCharacters);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useCharacters();
 
-  useEffect(() => {
-    init();
-  }, []);
+  const router = useRouter();
+
+  const characters = data?.pages.flatMap((page) => page.results) ?? [];
+
+  if (isLoading) {
+    return <ActivityIndicator style={{ flex: 1 }} size="large" />;
+  }
 
   const renderFooter = () => {
-    if (!loadingMore) return null;
+    if (!isFetchingNextPage) return null;
+
     return (
       <View style={styles.footer}>
         <ActivityIndicator color="#818cf8" size="small" />
@@ -38,11 +39,19 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Personnages</Text>
-        <Text style={styles.subtitle}>{characters.length} trouvés</Text>
+        <View>
+          <BackButton />
+
+          <View>
+            <Text style={styles.title}>Personnages</Text>
+            <Text style={styles.subtitle}>{characters.length} trouvés</Text>
+          </View>
+        </View>
+
+        <Drawer />
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <ActivityIndicator style={{ flex: 1 }} color="#818cf8" size="large" />
       ) : (
         <FlatList
@@ -53,9 +62,14 @@ const HomeScreen = () => {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => <CharacterCard character={item} />}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
+          onEndReached={() => {
+            if (hasNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.2}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
           ListFooterComponent={renderFooter}
+          windowSize={5}
         />
       )}
     </SafeAreaView>

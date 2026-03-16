@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export const usePagination = <T>(
   fetchFunction: (page: number) => Promise<any>,
@@ -8,13 +8,22 @@ export const usePagination = <T>(
   const [loadingMore, setLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const loadingRef = useRef<boolean>(false);
 
   const loadResources = async (page: number) => {
     const response = await fetchFunction(page);
+
     if (response) {
-      setData((prev) =>
-        page === 1 ? response.results : [...prev, ...response.results],
-      );
+      setData((prev) => {
+        const merged =
+          page === 1 ? response.results : [...prev, ...response.results];
+
+        const map = new Map();
+        merged.forEach((item: any) => map.set(item.id, item));
+
+        return Array.from(map.values());
+      });
+
       setHasNextPage(!!response.info.next);
     }
   };
@@ -26,11 +35,17 @@ export const usePagination = <T>(
 
   const handleLoadMore = async () => {
     if (loadingMore || !hasNextPage) return;
+
+    loadingRef.current = true;
     setLoadingMore(true);
+
     const nextPage = currentPage + 1;
     await loadResources(nextPage);
-    setCurrentPage(nextPage);
+
+    setCurrentPage((prev) => prev + 1);
+
     setLoadingMore(false);
+    loadingRef.current = false;
   };
 
   return {

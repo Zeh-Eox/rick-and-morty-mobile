@@ -1,3 +1,5 @@
+import Drawer from "@/components/global-drawer";
+import { CATEGORIES } from "@/constants";
 import { useRouter } from "expo-router";
 import {
   ScrollView,
@@ -8,83 +10,63 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const CATEGORIES = [
-  {
-    label: "Personnages",
-    description: "Explore tous les habitants de l'univers",
-    emoji: "🧑‍🚀",
-    color: "#818cf8",
-    glow: "rgba(129, 140, 248, 0.35)",
-    route: "/(characters)",
-  },
-  {
-    label: "Lieux",
-    description: "Découvre les planètes et dimensions",
-    emoji: "🌍",
-    color: "#34d399",
-    glow: "rgba(52, 211, 153, 0.35)",
-    route: "/(locations)",
-  },
-  {
-    label: "Épisodes",
-    description: "Retrouve chaque aventure de la série",
-    emoji: "🎬",
-    color: "#f472b6",
-    glow: "rgba(244, 114, 182, 0.35)",
-    route: "/(episodes)",
-  },
-];
-
 export default function Index() {
   const router = useRouter();
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>Bienvenue dans l'univers</Text>
-          <Text style={styles.title}>Rick & Morty</Text>
-          <View style={styles.divider} />
-          <Text style={styles.subtitle}>
-            Personnages, lieux, épisodes — tout l'univers à portée de main.
-          </Text>
-        </View>
+    <>
+      <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <Drawer />
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.eyebrow}>Bienvenue dans l'univers</Text>
+            <Text style={styles.title}>Rick & Morty</Text>
+            <View style={styles.divider} />
+            <Text style={styles.subtitle}>
+              Personnages, lieux, épisodes — tout l'univers à portée de main.
+            </Text>
+          </View>
 
-        {/* Cards */}
-        <View style={styles.cards}>
-          {CATEGORIES.map((category) => (
-            <TouchableOpacity
-              key={category.label}
-              style={[styles.card, { shadowColor: category.glow }]}
-              onPress={() => router.push(category.route as any)}
-              activeOpacity={0.85}
-            >
-              {/* Accent bar */}
-              <View
-                style={[styles.accentBar, { backgroundColor: category.color }]}
-              />
+          {/* Cards */}
+          <View style={styles.cards}>
+            {CATEGORIES.map((category) => (
+              <TouchableOpacity
+                key={category.label}
+                style={[styles.card, { shadowColor: category.glow }]}
+                onPress={() => router.push(category.route as any)}
+                activeOpacity={0.85}
+              >
+                {/* Accent bar */}
+                <View
+                  style={[
+                    styles.accentBar,
+                    { backgroundColor: category.color },
+                  ]}
+                />
 
-              <View style={styles.cardContent}>
-                <Text style={styles.emoji}>{category.emoji}</Text>
-                <View style={styles.cardText}>
-                  <Text style={[styles.cardLabel, { color: category.color }]}>
-                    {category.label}
-                  </Text>
-                  <Text style={styles.cardDescription}>
-                    {category.description}
+                <View style={styles.cardContent}>
+                  <View style={styles.cardText}>
+                    <Text style={[styles.cardLabel, { color: category.color }]}>
+                      {category.label}
+                    </Text>
+                    <Text style={styles.cardDescription}>
+                      {category.description}
+                    </Text>
+                  </View>
+                  <Text style={[styles.arrow, { color: category.color }]}>
+                    →
                   </Text>
                 </View>
-                <Text style={[styles.arrow, { color: category.color }]}>→</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 
