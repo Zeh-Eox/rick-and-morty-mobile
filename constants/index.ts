@@ -37,3 +37,50 @@ export const CATEGORIES = [
     route: "/(episodes)",
   },
 ];
+
+export const MENU_ITEMS = [
+  { name: "index", title: "Accueil" },
+  { name: "(characters)", title: "Personnages" },
+  { name: "(episodes)", title: "Épisodes" },
+  { name: "(locations)", title: "Lieux" },
+];
+
+export const STEPS = [
+  {
+    emoji: "🛸",
+    title: "Bienvenue dans l'univers",
+    subtitle: "Rick & Morty",
+    description:
+      "Explore l'univers infini de Rick & Morty — personnages, lieux et épisodes réunis en une seule app.",
+    color: "#818cf8",
+    glow: "rgba(129, 140, 248, 0.15)",
+  },
+  {
+    emoji: "🧑‍🚀",
+    title: "Des centaines de",
+    subtitle: "Personnages",
+    description:
+      "Parcours tous les personnages de la série, consulte leur statut, leur espèce et leur origine.",
+    color: "#34d399",
+    glow: "rgba(52, 211, 153, 0.15)",
+  },
+  {
+    emoji: "🌍",
+    title: "Lieux & Épisodes",
+    subtitle: "À découvrir",
+    description:
+      "Explore toutes les dimensions, planètes et épisodes qui composent cet univers délirant.",
+    color: "#f472b6",
+    glow: "rgba(244, 114, 182, 0.15)",
+  },
+  {
+    emoji: "⭐",
+    title: "Crée ton compte",
+    subtitle: "& sauvegarde tes favoris",
+    description:
+      "Inscris-toi pour retrouver tes personnages préférés à tout moment, sur tous tes appareils.",
+    color: "#fb923c",
+    glow: "rgba(251, 146, 60, 0.15)",
+  },
+];
+

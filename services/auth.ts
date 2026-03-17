@@ -3,7 +3,7 @@ import {
   getCurrentUser,
   signIn,
   signOut,
-  signUp,
+  signUp
 } from "aws-amplify/auth";
 
 export async function register(email: string, password: string) {
