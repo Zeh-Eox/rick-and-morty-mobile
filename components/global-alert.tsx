@@ -5,9 +5,15 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onLogin: () => void;
+  message: string;
 };
 
-export default function AuthAlert({ visible, onClose, onLogin }: Props) {
+export default function GlobalAlert({
+  visible,
+  onClose,
+  onLogin,
+  message,
+}: Props) {
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.overlay}>
@@ -20,9 +26,7 @@ export default function AuthAlert({ visible, onClose, onLogin }: Props) {
           {/* Texte */}
           <View style={styles.textBlock}>
             <Text style={styles.title}>Connexion requise</Text>
-            <Text style={styles.message}>
-              Connecte-toi pour ajouter des personnages à tes favoris.
-            </Text>
+            <Text style={styles.message}>{message}</Text>
           </View>
 
           {/* Boutons */}

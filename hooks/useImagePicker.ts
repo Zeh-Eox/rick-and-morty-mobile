@@ -1,8 +1,29 @@
+import * as FileSystem from "expo-file-system/next";
+import { File, Paths } from "expo-file-system/next";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import { useEffect, useState } from "react";
+
+const AVATAR_KEY = "user_avatar";
+
+const saveAvatarPermanently = async (uri: string): Promise<string> => {
+  const filename = uri.split("/").pop() ?? "avatar.jpg";
+  const dest = new File(Paths.document, filename);
+  const source = new File(uri);
+  source.copy(dest);
+  return dest.uri;
+};
 
 export const useImagePicker = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAvatar = async () => {
+      const saved = await SecureStore.getItemAsync(AVATAR_KEY);
+      if (saved) setAvatar(saved);
+    };
+    loadAvatar();
+  }, []);
 
   const pickImage = async (type: "camera" | "gallery") => {
     let result;
@@ -25,9 +46,18 @@ export const useImagePicker = () => {
     }
 
     if (!result.canceled) {
-      setAvatar(result.assets[0].uri);
+      const permanentUri = await saveAvatarPermanently(result.assets[0].uri);
+      await SecureStore.setItemAsync(AVATAR_KEY, permanentUri);
+      setAvatar(permanentUri);
     }
   };
 
-  return { avatar, pickImage };
+  const removeAvatar = async () => {
+    const saved = await SecureStore.getItemAsync(AVATAR_KEY);
+    if (saved) await FileSystem.deleteAsync(saved, { idempotent: true });
+    await SecureStore.deleteItemAsync(AVATAR_KEY);
+    setAvatar(null);
+  };
+
+  return { avatar, pickImage, removeAvatar };
 };

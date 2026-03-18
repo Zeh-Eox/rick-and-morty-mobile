@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
-import AuthAlert from "./auth-alert";
+import GlobalAlert from "./global-alert";
 import StatusBadge from "./status-badge";
 
 const { width } = Dimensions.get("window");
@@ -28,11 +28,16 @@ const CharacterCard = ({
   const { favorites, toggleFavorite } = useFavorites();
   const isFavorite = favorites.includes(character.id);
   const { user } = useAuth();
-  const [showAuthAlert, setShowAuthAlert] = useState(false);
+  const [showFavoriteAlert, setShowFavoriteAlert] = useState(false);
+  const [showDetailsAlert, setShowDetailsAlert] = useState(false);
   const router = useRouter();
 
   const notAuthAction = () => {
-    setShowAuthAlert(true);
+    setShowFavoriteAlert(true);
+  };
+
+  const notAuthActionForCharacterDetails = () => {
+    setShowDetailsAlert(true);
   };
 
   return (
@@ -42,7 +47,12 @@ const CharacterCard = ({
           styles.card,
           pressed && { transform: [{ scale: 0.97 }], opacity: 0.9 },
         ]}
-        onPress={() =>
+        onPress={() => {
+          if (!user) {
+            notAuthActionForCharacterDetails();
+            return;
+          }
+
           router.push({
             pathname: "/(characters)/[id]",
             params: {
@@ -56,8 +66,8 @@ const CharacterCard = ({
               location: character.location.name,
               episodes: character.episode.length.toString(),
             },
-          })
-        }
+          });
+        }}
       >
         <Image source={{ uri: character.image }} style={styles.image} />
 
@@ -86,13 +96,24 @@ const CharacterCard = ({
         </View>
       </Pressable>
 
-      <AuthAlert
-        visible={showAuthAlert}
-        onClose={() => setShowAuthAlert(false)}
+      <GlobalAlert
+        visible={showFavoriteAlert}
+        onClose={() => setShowFavoriteAlert(false)}
         onLogin={() => {
-          setShowAuthAlert(false);
+          setShowFavoriteAlert(false);
           router.push("/(auth)/login");
         }}
+        message="Connecte-toi pour ajouter des personnages à tes favoris."
+      />
+
+      <GlobalAlert
+        visible={showDetailsAlert}
+        onClose={() => setShowDetailsAlert(false)}
+        onLogin={() => {
+          setShowDetailsAlert(false);
+          router.push("/(auth)/login");
+        }}
+        message="Connecte-toi pour voir les details des personnages."
       />
     </>
   );

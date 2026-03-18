@@ -1,35 +1,19 @@
 import BackButton from "@/components/back-button";
 import { DeleteAccountModal } from "@/components/confirm-delete";
+import ChooseAvatar from "@/components/choose-avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { getColorFromString } from "@/utils/get-color-from-string";
 import { getInitials } from "@/utils/get-initials";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ProfileScreen = () => {
   const { user, deleteAccount } = useAuth();
-
   const { avatar, pickImage } = useImagePicker();
-
-  const handleAvatarPress = () => {
-    Alert.alert("Photo de profil", "Choisir une option", [
-      {
-        text: "Caméra",
-        onPress: () => pickImage("camera"),
-      },
-      {
-        text: "Galerie",
-        onPress: () => pickImage("gallery"),
-      },
-      {
-        text: "Annuler",
-        style: "cancel",
-      },
-    ]);
-  };
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   const email = user?.signInDetails?.loginId ?? "";
   const userId = user?.userId ?? "";
@@ -37,102 +21,108 @@ const ProfileScreen = () => {
   const initials = getInitials(email);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <View style={styles.inner}>
-        {/* Header */}
-        <View style={styles.header}>
-          <BackButton />
-          <Text style={styles.title}>Mon profil</Text>
-        </View>
-
-        {/* Avatar + infos */}
-        <View style={styles.profileCard}>
-          <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation();
-              handleAvatarPress();
-            }}
-            style={[
-              styles.avatar,
-              {
-                backgroundColor: avatarColor + "22",
-                borderColor: avatarColor + "55",
-              },
-            ]}
-          >
-            <Text style={[styles.avatarInitials, { color: "black" }]}>
-              {initials}
-            </Text>
-          </TouchableOpacity>
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileEmail}>{email || "—"}</Text>
-            <View style={styles.badge}>
-              <View style={styles.badgeDot} />
-              <Text style={styles.badgeText}>Connecté</Text>
-            </View>
+    <>
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+        <View style={styles.inner}>
+          {/* Header */}
+          <View style={styles.header}>
+            <BackButton />
+            <Text style={styles.title}>Mon profil</Text>
           </View>
-        </View>
 
-        {/* Infos compte */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Informations</Text>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconBox}>
-                <Ionicons name="mail-outline" size={16} color="#818cf8" />
+          {/* Avatar + infos */}
+          <View style={styles.profileCard}>
+            <TouchableOpacity
+              onPress={() => setShowAvatarModal(true)}
+              activeOpacity={0.85}
+            >
+              {avatar ? (
+                <Image source={{ uri: avatar }} style={styles.avatar} />
+              ) : (
+                <View
+                  style={[
+                    styles.avatar,
+                    {
+                      backgroundColor: avatarColor + "22",
+                      borderColor: avatarColor + "55",
+                    },
+                  ]}
+                >
+                  <Text style={[styles.avatarInitials, { color: "#fff" }]}>
+                    {initials}
+                  </Text>
+                </View>
+              )}
+              {/* Badge caméra */}
+              <View style={styles.cameraTag}>
+                <Ionicons name="camera" size={10} color="#fff" />
               </View>
-              <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue} numberOfLines={1}>
-                  {user?.signInDetails?.loginId ?? "—"}
-                </Text>
-              </View>
-            </View>
+            </TouchableOpacity>
 
-            <View style={styles.infoDivider} />
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconBox}>
-                <Ionicons
-                  name="finger-print-outline"
-                  size={16}
-                  color="#818cf8"
-                />
-              </View>
-              <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Identifiant</Text>
-                <Text style={styles.infoValue} numberOfLines={1}>
-                  {user?.userId ?? "—"}
-                </Text>
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileEmail}>{email || "—"}</Text>
+              <View style={styles.badge}>
+                <View style={styles.badgeDot} />
+                <Text style={styles.badgeText}>Connecté</Text>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* Zone danger */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Zone dangereuse</Text>
-          <DeleteAccountModal onConfirm={deleteAccount} />
+          {/* Infos compte */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Informations</Text>
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconBox}>
+                  <Ionicons name="mail-outline" size={16} color="#818cf8" />
+                </View>
+                <View style={styles.infoText}>
+                  <Text style={styles.infoLabel}>Email</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {email || "—"}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.infoDivider} />
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconBox}>
+                  <Ionicons
+                    name="finger-print-outline"
+                    size={16}
+                    color="#818cf8"
+                  />
+                </View>
+                <View style={styles.infoText}>
+                  <Text style={styles.infoLabel}>Identifiant</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {user?.userId ?? "—"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Zone danger */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Zone dangereuse</Text>
+            <DeleteAccountModal onConfirm={deleteAccount} />
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+
+      <ChooseAvatar
+        visible={showAvatarModal}
+        onClose={() => setShowAvatarModal(false)}
+        onPick={pickImage}
+      />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0f172a",
-  },
-  inner: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    gap: 28,
-  },
-  header: {
-    gap: 8,
-  },
+  container: { flex: 1, backgroundColor: "#0f172a" },
+  inner: { flex: 1, paddingHorizontal: 20, paddingTop: 16, gap: 28 },
+  header: { gap: 8 },
   title: {
     fontSize: 28,
     fontWeight: "800",
@@ -153,23 +143,26 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: "rgba(129, 140, 248, 0.1)",
     borderWidth: 1,
-    borderColor: "rgba(129, 140, 248, 0.25)",
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarInitials: {
-    fontSize: 22,
-    fontWeight: "800",
-    letterSpacing: 1,
+  avatarInitials: { fontSize: 22, fontWeight: "800", letterSpacing: 1 },
+  cameraTag: {
+    position: "absolute",
+    bottom: -4,
+    right: -4,
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    backgroundColor: "#818cf8",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#1e293b",
   },
   profileInfo: { gap: 6, flex: 1 },
-  profileEmail: {
-    color: "#f1f5f9",
-    fontWeight: "700",
-    fontSize: 15,
-  },
+  profileEmail: { color: "#f1f5f9", fontWeight: "700", fontSize: 15 },
   badge: {
     flexDirection: "row",
     alignItems: "center",
@@ -188,11 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: "#4ade80",
   },
-  badgeText: {
-    color: "#4ade80",
-    fontSize: 11,
-    fontWeight: "700",
-  },
+  badgeText: { color: "#4ade80", fontSize: 11, fontWeight: "700" },
   section: { gap: 12 },
   sectionTitle: {
     fontSize: 13,
@@ -208,12 +197,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.06)",
     overflow: "hidden",
   },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    padding: 16,
-  },
+  infoRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
   infoDivider: {
     height: 1,
     backgroundColor: "rgba(255,255,255,0.05)",
@@ -235,11 +219,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  infoValue: {
-    fontSize: 14,
-    color: "#94a3b8",
-    fontWeight: "500",
-  },
+  infoValue: { fontSize: 14, color: "#94a3b8", fontWeight: "500" },
+  // Bottom sheet
 });
 
 export default ProfileScreen;

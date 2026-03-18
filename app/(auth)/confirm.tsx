@@ -135,7 +135,7 @@ export default function Confirm() {
             )}
           </TouchableOpacity>
 
-          {/* Retour */}
+          {/* Retour
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => router.back()}
@@ -143,7 +143,7 @@ export default function Confirm() {
           >
             <Ionicons name="arrow-back-outline" size={15} color="#475569" />
             <Text style={styles.backText}>Retour à l'accueil</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>

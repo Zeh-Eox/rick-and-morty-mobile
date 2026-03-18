@@ -8,7 +8,8 @@
     "scheme": "rickandmorty",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.rickandmorty"
     },
     "android": {
       "adaptiveIcon": {
