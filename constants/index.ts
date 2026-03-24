@@ -83,4 +83,3 @@ export const STEPS = [
     glow: "rgba(251, 146, 60, 0.15)",
   },
 ];
-

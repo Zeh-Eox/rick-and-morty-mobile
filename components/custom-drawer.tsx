@@ -1,6 +1,5 @@
 import "@/configs/amplify";
 import { useAuth } from "@/hooks/useAuth";
-import { logout } from "@/services/auth";
 import "@aws-amplify/react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -14,11 +13,6 @@ import "react-native-get-random-values";
 export function CustomDrawerContent(props: any) {
   const router = useRouter();
   const { user } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    router.navigate("/");
-  };
 
   return (
     <DrawerContentScrollView
@@ -57,20 +51,6 @@ export function CustomDrawerContent(props: any) {
                   color="#818cf8"
                 />
                 <Text style={styles.authButtonText}>Mon profil</Text>
-              </View>
-
-              <Ionicons name="chevron-forward" size={18} color="#475569" />
-            </TouchableOpacity>
-
-            {/* Logout */}
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={() => handleLogout()}
-              activeOpacity={0.8}
-            >
-              <View style={styles.authButtonInner}>
-                <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-                <Text style={styles.logoutText}>Se déconnecter</Text>
               </View>
 
               <Ionicons name="chevron-forward" size={18} color="#475569" />

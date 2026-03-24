@@ -19,6 +19,8 @@ export default function Register() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [givenName, setGivenName] = useState("");
+  const [familyName, setFamilyName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +33,7 @@ export default function Register() {
     try {
       setError("");
       setLoading(true);
-      await register(email, password);
+      await register(email, password, givenName, familyName);
       router.push({ pathname: "/(auth)/confirm", params: { email } });
     } catch (e: any) {
       setError(e.message ?? "Une erreur est survenue.");
@@ -62,6 +64,42 @@ export default function Register() {
 
         {/* Formulaire */}
         <View style={styles.form}>
+          {/* Prénom */}
+          <View style={styles.inputWrapper}>
+            <Ionicons
+              name="person-outline"
+              size={18}
+              color="#475569"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              placeholder="Prénom"
+              placeholderTextColor="#475569"
+              style={styles.input}
+              value={givenName}
+              onChangeText={setGivenName}
+              autoCapitalize="words"
+            />
+          </View>
+
+          {/* Nom */}
+          <View style={styles.inputWrapper}>
+            <Ionicons
+              name="person-circle-outline"
+              size={18}
+              color="#475569"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              placeholder="Nom"
+              placeholderTextColor="#475569"
+              style={styles.input}
+              value={familyName}
+              onChangeText={setFamilyName}
+              autoCapitalize="words"
+            />
+          </View>
+
           {/* Email */}
           <View style={styles.inputWrapper}>
             <Ionicons

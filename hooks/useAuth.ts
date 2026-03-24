@@ -1,3 +1,5 @@
+import { logoutService } from "@/services/auth";
+import { clearAvatar } from "@/services/avatar";
 import { AuthUser, deleteUser, getCurrentUser } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import { useRouter } from "expo-router";
@@ -26,6 +28,16 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    try {
+      await clearAvatar();
+      await logoutService();
+      setUser(null);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const deleteAccount = async () => {
     try {
       await deleteUser();
@@ -38,5 +50,5 @@ export function useAuth() {
     }
   };
 
-  return { user, deleteAccount };
+  return { user, logout, deleteAccount };
 }

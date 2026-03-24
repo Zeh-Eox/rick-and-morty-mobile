@@ -1,24 +1,74 @@
+import AvatarPreviewModal from "@/components/avatar-modal-preview";
 import BackButton from "@/components/back-button";
-import { DeleteAccountModal } from "@/components/confirm-delete";
 import ChooseAvatar from "@/components/choose-avatar";
+import { DeleteAccountModal } from "@/components/confirm-delete";
 import { useAuth } from "@/hooks/useAuth";
 import { useImagePicker } from "@/hooks/useImagePicker";
+import { getUserFull } from "@/services/auth";
 import { getColorFromString } from "@/utils/get-color-from-string";
 import { getInitials } from "@/utils/get-initials";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ProfileScreen = () => {
-  const { user, deleteAccount } = useAuth();
-  const { avatar, pickImage } = useImagePicker();
+  const { user, deleteAccount, logout } = useAuth();
+  const { avatar, pickImage, removeAvatar, loading } = useImagePicker();
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [userAttributes, setUserAttributes] = useState<any>(null);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  const email = user?.signInDetails?.loginId ?? "";
+  const handlePickImage = async (type: "camera" | "gallery") => {
+    setAvatarLoading(true);
+    try {
+      await pickImage(type);
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!user) {
+        setUserAttributes(null);
+        router.navigate("../");
+        return;
+      }
+
+      try {
+        const data = await getUserFull();
+        setUserAttributes(data);
+      } catch (error) {
+        console.log("Erreur user:", error);
+      }
+    };
+
+    loadUser();
+  }, [user]);
+
+  const handleLogout = async () => {
+    await removeAvatar();
+    await logout();
+  };
+
+  const email = userAttributes?.email ?? "";
+  const givenName = userAttributes?.given_name ?? "";
+  const familyName = userAttributes?.family_name ?? "";
+  const fullName =
+    givenName || familyName ? `${givenName} ${familyName}`.trim() : "";
   const userId = user?.userId ?? "";
   const avatarColor = getColorFromString(email + userId);
-  const initials = getInitials(email);
+  const initials = getInitials(email, givenName, familyName);
 
   return (
     <>
@@ -33,11 +83,29 @@ const ProfileScreen = () => {
           {/* Avatar + infos */}
           <View style={styles.profileCard}>
             <TouchableOpacity
-              onPress={() => setShowAvatarModal(true)}
+              onPress={() => {
+                if (avatar) {
+                  setShowPreviewModal(true);
+                } else {
+                  setShowAvatarModal(true);
+                }
+              }}
               activeOpacity={0.85}
             >
               {avatar ? (
                 <Image source={{ uri: avatar }} style={styles.avatar} />
+              ) : avatarLoading ? (
+                <View
+                  style={[
+                    styles.avatar,
+                    {
+                      backgroundColor: "#1e293b",
+                      borderColor: "rgba(255,255,255,0.1)",
+                    },
+                  ]}
+                >
+                  <ActivityIndicator size="small" color="#818cf8" />
+                </View>
               ) : (
                 <View
                   style={[
@@ -60,7 +128,7 @@ const ProfileScreen = () => {
             </TouchableOpacity>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.profileEmail}>{email || "—"}</Text>
+              <Text style={styles.profileEmail}>{fullName || "—"}</Text>
               <View style={styles.badge}>
                 <View style={styles.badgeDot} />
                 <Text style={styles.badgeText}>Connecté</Text>
@@ -87,6 +155,22 @@ const ProfileScreen = () => {
               <View style={styles.infoRow}>
                 <View style={styles.infoIconBox}>
                   <Ionicons
+                    name="person-circle-outline"
+                    size={16}
+                    color="#818cf8"
+                  />
+                </View>
+                <View style={styles.infoText}>
+                  <Text style={styles.infoLabel}>Nom complet</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {fullName || "—"}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.infoDivider} />
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconBox}>
+                  <Ionicons
                     name="finger-print-outline"
                     size={16}
                     color="#818cf8"
@@ -102,6 +186,18 @@ const ProfileScreen = () => {
             </View>
           </View>
 
+          {/* Logout */}
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={() => handleLogout()}
+            activeOpacity={0.8}
+          >
+            <View style={styles.authButtonInner}>
+              <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+              <Text style={styles.logoutText}>Se déconnecter</Text>
+            </View>
+          </TouchableOpacity>
+
           {/* Zone danger */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Zone dangereuse</Text>
@@ -113,8 +209,23 @@ const ProfileScreen = () => {
       <ChooseAvatar
         visible={showAvatarModal}
         onClose={() => setShowAvatarModal(false)}
-        onPick={pickImage}
+        onPick={handlePickImage}
       />
+
+      {avatar && (
+        <AvatarPreviewModal
+          visible={showPreviewModal}
+          uri={avatar}
+          onClose={() => setShowPreviewModal(false)}
+          onDelete={async () => {
+            await removeAvatar();
+          }}
+          onChange={() => {
+            setShowPreviewModal(false);
+            setShowAvatarModal(true);
+          }}
+        />
+      )}
     </>
   );
 };
@@ -220,7 +331,29 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   infoValue: { fontSize: 14, color: "#94a3b8", fontWeight: "500" },
-  // Bottom sheet
+
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1e293b",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: "rgba(239,68,68,0.3)",
+  },
+
+  logoutText: {
+    color: "#ef4444",
+    fontWeight: "600",
+  },
+
+  authButtonInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
 });
 
 export default ProfileScreen;

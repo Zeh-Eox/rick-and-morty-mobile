@@ -1,4 +1,3 @@
-import * as FileSystem from "expo-file-system/next";
 import { File, Paths } from "expo-file-system/next";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
@@ -10,12 +9,13 @@ const saveAvatarPermanently = async (uri: string): Promise<string> => {
   const filename = uri.split("/").pop() ?? "avatar.jpg";
   const dest = new File(Paths.document, filename);
   const source = new File(uri);
-  source.copy(dest);
+  await source.copy(dest);
   return dest.uri;
 };
 
 export const useImagePicker = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadAvatar = async () => {
@@ -27,7 +27,6 @@ export const useImagePicker = () => {
 
   const pickImage = async (type: "camera" | "gallery") => {
     let result;
-
     if (type === "camera") {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) return;
@@ -46,18 +45,26 @@ export const useImagePicker = () => {
     }
 
     if (!result.canceled) {
-      const permanentUri = await saveAvatarPermanently(result.assets[0].uri);
-      await SecureStore.setItemAsync(AVATAR_KEY, permanentUri);
-      setAvatar(permanentUri);
+      setLoading(true);
+      try {
+        const permanentUri = await saveAvatarPermanently(result.assets[0].uri);
+        await SecureStore.setItemAsync(AVATAR_KEY, permanentUri);
+        setAvatar(permanentUri);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const removeAvatar = async () => {
     const saved = await SecureStore.getItemAsync(AVATAR_KEY);
-    if (saved) await FileSystem.deleteAsync(saved, { idempotent: true });
+    if (saved) {
+      const file = new File(saved);
+      if (await file.exists) await file.delete();
+    }
     await SecureStore.deleteItemAsync(AVATAR_KEY);
     setAvatar(null);
   };
 
-  return { avatar, pickImage, removeAvatar };
+  return { avatar, pickImage, removeAvatar, loading };
 };
